@@ -69,7 +69,7 @@ public class Main {
                         String karmacipient = a_msg.substring(0, a_msg.lastIndexOf("++")).trim(); // get rid of any spaces between '++' and the preceeding word
                         karmacipient = karmacipient.replaceAll("[#:,.!\"$%&*()?+/]", ""); // Clear out characters that aren't allowed in nicknames
                         if (karmacipient.contains(" ")) { // get the last word before the '++'
-                            karmacipient = a_msg.substring(karmacipient.lastIndexOf(" "));
+                            karmacipient = karmacipient.substring(karmacipient.lastIndexOf(" ") + 1).trim();
                         }
                         if (m_Karma.containsKey(karmacipient)) {
                             m_Karma.put(karmacipient, ((int) m_Karma.get(karmacipient)) + 1);
@@ -79,7 +79,7 @@ public class Main {
                         String karmacipient = a_msg.substring(0, a_msg.lastIndexOf("--")).trim(); // get rid of any spaces between '--' and the preceeding word
                         karmacipient = karmacipient.replaceAll("[#:,.!\"$%&*()?+/]", ""); // Clear out characters that aren't allowed in nicknames
                         if (karmacipient.contains(" ")) { // get the last word before the '--'
-                            karmacipient = a_msg.substring(karmacipient.lastIndexOf(" "));
+                            karmacipient = a_msg.substring(karmacipient.lastIndexOf(" ") + 1).trim();
                         }
                         if (m_Karma.containsKey(karmacipient)) {
                             m_Karma.put(karmacipient, ((int) m_Karma.get(karmacipient)) - 1);
