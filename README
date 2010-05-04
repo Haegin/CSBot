@@ -1,0 +1,10 @@
+This is a simple IRC bot for use on the #cs-york IRC channel on the Freenode network.
+
+Features
+^^^^^^^^
+> Karma - keeps track of users karma. Karma is modified using ++ and -- and can be queried using !karma <user>.
+
+
+Planned Improvements
+^^^^^^^^^^^^^^^^^^^^
+> Karma should persist so the bot remembers karma when it's not running for when it starts back up again.
