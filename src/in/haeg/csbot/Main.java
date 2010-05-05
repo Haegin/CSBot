@@ -60,6 +60,9 @@ public class Main {
                     if (m_Karma.containsKey(a_user.getNick())) {
                         m_Karma.remove(a_user.getNick());
                     }
+                    if (a_user.getNick().equals("prettygreat")) {
+                        m_Conn.doPrivmsg("#cs-york", "...dary");
+                    }
                 }
 
                 @Override public void onPrivmsg(String a_target, IRCUser a_user, String a_msg) {
