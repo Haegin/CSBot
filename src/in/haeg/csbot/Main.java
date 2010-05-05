@@ -41,7 +41,7 @@ public class Main {
                 }
 
                 @Override public void onReply(int a_num, String a_value, String a_msg) {
-                    System.out.println("REPLY: " + a_value + " =][= " + a_msg);
+                    // System.out.println("REPLY: " + a_value + " =][= " + a_msg);
 
                     // If the reply is a list of names then we want to process them and add them to the list of karma names
                     if (a_num == IRCUtil.RPL_NAMREPLY) {
@@ -63,8 +63,8 @@ public class Main {
                 }
 
                 @Override public void onPrivmsg(String a_target, IRCUser a_user, String a_msg) {
-                    m_Log.log(Level.FINE, "Got privmsg from " + a_target);
-                    System.out.println("PRIVMSG: " + a_msg);
+                    // m_Log.log(Level.FINE, "Got privmsg from " + a_target);
+                    // System.out.println("PRIVMSG: " + a_msg);
                     if (a_target.equals(Constants.CHANNEL) && a_msg.contains("++")) {
                         String karmacipient = a_msg.substring(0, a_msg.lastIndexOf("++")).trim(); // get rid of any spaces between '++' and the preceeding word
                         karmacipient = karmacipient.replaceAll("[#:,.!\"$%&*()?+/]", ""); // Clear out characters that aren't allowed in nicknames
@@ -79,7 +79,7 @@ public class Main {
                         String karmacipient = a_msg.substring(0, a_msg.lastIndexOf("--")).trim(); // get rid of any spaces between '--' and the preceeding word
                         karmacipient = karmacipient.replaceAll("[#:,.!\"$%&*()?+/]", ""); // Clear out characters that aren't allowed in nicknames
                         if (karmacipient.contains(" ")) { // get the last word before the '--'
-                            karmacipient = a_msg.substring(karmacipient.lastIndexOf(" ") + 1).trim();
+                            karmacipient = karmacipient.substring(karmacipient.lastIndexOf(" ") + 1).trim();
                         }
                         if (m_Karma.containsKey(karmacipient)) {
                             m_Karma.put(karmacipient, ((int) m_Karma.get(karmacipient)) - 1);
@@ -89,7 +89,7 @@ public class Main {
 
                     // Actions
                     if ((a_target.equals(Constants.NICK_NAME) || a_target.equals(Constants.CHANNEL)) && a_msg.startsWith("!")) {
-                        if (a_msg.startsWith("!karma")) {
+                        if (a_msg.startsWith("!karma") && a_msg.contains(" ")) {
                             String karmacipient = a_msg.split("[ \t]")[1];
                             if (m_Karma.containsKey(karmacipient)) {
                                 String target;
@@ -141,14 +141,14 @@ public class Main {
                 }
 
                 @Override public void onJoin(String a_chan, IRCUser a_user) {
-                    System.out.println("JOIN: " + a_user.getNick());
+                    // System.out.println("JOIN: " + a_user.getNick());
                     if (!m_Karma.containsKey(a_user.getNick())) {
                         m_Karma.put(a_user.getNick(), 0);
                     }
                 }
 
                 @Override public void onInvite(String a_chan, IRCUser a_user, String a_passiveNick) {
-                    System.out.println("INVITE: " + a_user.getNick());
+                    // System.out.println("INVITE: " + a_user.getNick());
                     if (!m_Karma.containsKey(a_user.getNick())) {
                         m_Karma.put(a_user.getNick(), 0);
                     }
