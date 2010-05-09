@@ -73,7 +73,9 @@ public class Main {
                     if (a_target.equals(Constants.CHANNEL)) {
                         if (a_msg.contains("++")) {
                             incrementKarma(a_msg, a_user.getNick());
-                        } else if (a_msg.contains("--")) {
+                        }
+                        // This isn't an else as something like "++ Foo --" should decrement Foo (assuming Foo is a nickname)
+                        if (a_msg.contains("--")) {
                             decrementKarma(a_msg, a_user.getNick());
                         }
                     }
@@ -146,10 +148,16 @@ public class Main {
         }
     }
 
+    // TODO: Check to make sure nobody else has the new nick
     protected static void updateNick(String a_OldNick, String a_NewNick) {
         if (m_Users.contains(a_OldNick)) {
             try {
-                m_Users.get(a_OldNick).addLatestNick(a_NewNick);
+                User user = m_Users.get(a_OldNick);
+                if (user.hasNick(a_NewNick)) {
+                    user.setSelectedNick(a_NewNick);
+                } else {
+                    user.addLatestNick(a_NewNick);
+                }
             } catch (NickNotFoundException ex) {
                 // Shouldn't ever occur
             }
@@ -183,7 +191,7 @@ public class Main {
 
     protected static void processNames(String[] a_Names) {
         for (String nick : a_Names) {
-            m_Conn.doWhois(nick.replaceAll("[@\\+]", ""));
+            m_Conn.doWhois(nick.replaceAll("[@\\+%]", ""));
         }
     }
 

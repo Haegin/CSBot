@@ -72,6 +72,10 @@ public class User {
         m_Nicknames = a_Nicknames;
     }
 
+    public void setSelectedNick(String a_Nickname) {
+        m_Nicknames.setSelected(a_Nickname);
+    }
+
     public void setUsername(String a_Username) {
         m_Username = a_Username;
     }
