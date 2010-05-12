@@ -11,6 +11,7 @@ public class User {
     private String               m_Username;
     private String               m_Host;
     private int                  m_Karma = 0;
+    private boolean              m_IsOperator;
 
     public User(String a_Nickname) {
         m_Nicknames = new SelectedList<String>();
@@ -60,6 +61,10 @@ public class User {
         return m_Host;
     }
 
+    public boolean isOperator() {
+        return m_IsOperator;
+    }
+
     public String getNickname() {
         return m_Nicknames.getSelected();
     }
@@ -82,6 +87,10 @@ public class User {
 
     public void setHost(String a_Host) {
         m_Host = a_Host;
+    }
+
+    public void setOperator(boolean a_IsOperator) {
+        m_IsOperator = a_IsOperator;
     }
 
     /* Karma */

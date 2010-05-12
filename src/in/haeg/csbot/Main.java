@@ -3,8 +3,6 @@ package in.haeg.csbot;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.schwering.irc.lib.IRCConnection;
 import org.schwering.irc.lib.IRCEventListener;
@@ -85,6 +83,21 @@ public class Main {
                         if (a_msg.startsWith("!karma")) {
                             showKarma(a_msg, a_user.getNick());
                         }
+
+                        if (m_Users.contains(a_user.getNick())) {
+                            try {
+                                if (m_Users.get(a_user.getNick()).isOperator()) {
+                                    if (a_msg.startsWith("!resetKarma")) {
+                                        resetKarma(a_msg.split(" ")[1]);
+                                    } else if (a_msg.startsWith("!begone")) {
+                                        m_Conn.doQuit("As you wish, sir."); // TODO: add the ability to send a custom quit message.
+                                    }
+                                }
+                            } catch (NickNotFoundException ex) {
+                                // Shouldn't happen
+                            }
+                        }
+
                     }
                 }
 
@@ -106,6 +119,16 @@ public class Main {
                 }
 
                 @Override public void onMode(String a_chan, IRCUser a_user, IRCModeParser a_modeParser) {
+                    for (int modeIndex = 1; modeIndex <= a_modeParser.getCount(); modeIndex++) {
+                        if (a_modeParser.getModeAt(modeIndex) == 'o') {
+                            char operator = a_modeParser.getOperatorAt(modeIndex);
+                            if (operator == '+') { // Someone gained ops
+                                addOps(a_modeParser.getArgAt(modeIndex));
+                            } else if (operator == 's') { // Someone lost ops
+                                removeOps(a_modeParser.getArgAt(modeIndex));
+                            }
+                        }
+                    }
                 }
 
                 @Override public void onKick(String a_chan, IRCUser a_user, String a_passiveNick, String a_msg) {
@@ -195,6 +218,28 @@ public class Main {
         }
     }
 
+    protected static void addOps(String nick) {
+        if (m_Users.contains(nick)) {
+            try {
+                m_Users.get(nick).setOperator(true);
+            } catch (NickNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+    }
+
+    protected static void removeOps(String nick) {
+        if (m_Users.contains(nick)) {
+            try {
+                m_Users.get(nick).setOperator(false);
+            } catch (NickNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+    }
+
     protected static void incrementKarma(String a_Message, String a_FromNick) {
         String karmacipient = karmacipient(a_Message, "++");
         if (!a_FromNick.equals(karmacipient) && m_Users.contains(karmacipient)) { // Don't allow anyone to karma themselves
@@ -217,6 +262,17 @@ public class Main {
                 System.out.println("Decrementing " + karmacipient + "'s karma");
             } catch (NickNotFoundException ex) {
                 // This won't happen due to the contains guard above
+            }
+        }
+    }
+
+    protected static void resetKarma(String a_nick) {
+        if (m_Users.contains(a_nick)) {
+            try {
+                m_Users.get(a_nick).resetKarma();
+                m_Conn.doPrivmsg(Constants.CHANNEL, "The karma for " + a_nick + " has been reset to zero.");
+            } catch (NickNotFoundException ex) {
+                // Shouldn't happen.
             }
         }
     }
