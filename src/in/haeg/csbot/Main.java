@@ -25,8 +25,6 @@ public class Main {
         m_Conn.setPong(true);
         try {
             m_Conn.connect();
-            m_Conn.doJoin(Constants.CHANNEL);
-            m_Conn.doPrivmsg(Constants.CHANNEL, "Hi, I'm a fairly basic karma bot. Tell Haegin if you want me to be able to do more than just count karma");
 
             m_Conn.addIRCEventListener(new IRCEventListener() {
 
@@ -38,20 +36,16 @@ public class Main {
                 }
 
                 @Override public void onReply(int a_num, String a_value, String a_msg) {
-                    // System.out.println("REPLY: " + a_value + " =][= " + a_msg);
 
                     switch (a_num) {
-                        // If the reply is a list of names then we want to process them and add them to the list of karma names
-                        case IRCUtil.RPL_NAMREPLY:
-                            processNames(a_msg.split("[ \t]+"));
-                            break;
+                        // If the reply is part of a who request we need to record all the users if they don't already exist.
+                        case IRCUtil.RPL_WHOREPLY:
+                            System.out.println("REPLY: " + a_value + " =][= " + a_msg);
+                            String[] values = a_value.split(" "); // Split the value up into its constituent parts
+                            // a_value is in the form "<bot nick> <channel> <user> <host> <server> <nick> <H|G>[*][@|+] <hopcount> <realname>"
+                            processUser(values[2], values[3], values[4], values[5], values[6], a_msg);
 
-                        // If the reply is part of a whois then we want to create the user if necessary and update the relevant details
-                        case IRCUtil.RPL_WHOISUSER:
-                            processUser(a_value.replaceAll("\\*:~", "").split("[ \t]+"));
-                            break;
-
-                        // If we get anything else then we don't need to do anything
+                            // If we get anything else then we don't need to do anything
                         default:
                             break;
                     }
@@ -61,7 +55,7 @@ public class Main {
                 }
 
                 @Override public void onQuit(IRCUser a_user, String a_msg) {
-                    if (a_user.getNick().equals("prettygreat")) {
+                    if (a_user.getNick().equals("prettygreat") && a_msg.contains("egen...")) {
                         m_Conn.doPrivmsg("#cs-york", "...dary");
                     }
                 }
@@ -97,7 +91,6 @@ public class Main {
                                 // Shouldn't happen
                             }
                         }
-
                     }
                 }
 
@@ -155,8 +148,23 @@ public class Main {
                 }
             });
 
+            m_Conn.doJoin(Constants.CHANNEL);
+            m_Conn.doWho(Constants.CHANNEL);
+            m_Conn.doPrivmsg(Constants.CHANNEL, "Hi, I'm a fairly basic karma bot. Tell Haegin if you want me to be able to do more than just count karma");
+
         } catch (IOException ex) {
             m_Log.log(Level.WARNING, "Couldn't connect to server " + Constants.HOST);
+        }
+    }
+
+    protected static void processUser(String user, String host, String server, String nick, String flags, String real) {
+        // Don't bother adding the new user if they already exist in the list.
+        if (!m_Users.contains(nick)) {
+            User newUser = new User(nick, user, real, host, server);
+            if (flags.contains("@")) {
+                newUser.setOperator(true);
+            }
+            m_Users.add(newUser);
         }
     }
 
@@ -186,35 +194,6 @@ public class Main {
             }
         } else {
             m_Conn.doWhois(a_NewNick);
-        }
-    }
-
-    protected static void processUser(String[] a_UserInfo) {
-        System.out.println(a_UserInfo[1]);
-        if (a_UserInfo.length >= 4) {
-            String nickname = a_UserInfo[1];
-            String username = a_UserInfo[2];
-            String host = a_UserInfo[3];
-
-            if (m_Users.contains(nickname)) {
-                try {
-                    User user = m_Users.get(nickname);
-                    user.setHost(host);
-                    user.setUsername(username);
-                } catch (NickNotFoundException ex) {
-                    // This should never happen as we have checked using contains but if it does happen we'll log it.
-                    m_Log.log(Level.WARNING, "Something has gone wrong as this should never happen. There must be a bug somewhere.");
-                }
-            } else {
-                User user = new User(nickname, username, host);
-                m_Users.add(user);
-            }
-        }
-    }
-
-    protected static void processNames(String[] a_Names) {
-        for (String nick : a_Names) {
-            m_Conn.doWhois(nick.replaceAll("[@\\+%]", ""));
         }
     }
 
@@ -276,18 +255,6 @@ public class Main {
             }
         }
     }
-
-    // private static String karmacipient(String a_Message, String a_Suffix) {
-    // Pattern patt = Pattern.compile("([a-zA-Z][a-zA-Z0-9[-\\[\\]`\\^\\{\\}]]*)[#:,\\.!\"$%&\\*\\(\\)\\?\\+/ \t]*" + Pattern.quote(a_Suffix));
-    // System.out.println(patt.toString());
-    // Matcher match = patt.matcher(a_Message);
-    // System.out.println(a_Message);
-    // if (match.groupCount() > 0) {
-    // return match.group(1);
-    // } else {
-    // return "";
-    // }
-    // }
 
     private static String karmacipient(String a_Message, String a_Suffix) {
         String karmacipient = a_Message.substring(0, a_Message.lastIndexOf(a_Suffix)).trim();

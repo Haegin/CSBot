@@ -7,5 +7,5 @@ public final class Constants {
     public static final String NICK_NAME = "CSYorkBotTest";
     public static final String REAL_NAME = "Haegin's CS Bot";
     public static final String USER_NAME = "Haegins CS Bot";
-    public static final String CHANNEL   = "#cs-york";
+    public static final String CHANNEL   = "#cs-york-bottest";
 }

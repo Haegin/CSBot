@@ -54,6 +54,7 @@ public class UserList implements List<User> {
     // And we delegate everything else to the m_Users list
 
     @Override public boolean add(User e) {
+        System.out.println("Adding user " + e.getNickname());
         return m_Users.add(e);
     }
 
