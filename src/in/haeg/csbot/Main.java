@@ -17,7 +17,7 @@ public class Main {
 
     /**
      * The main run loop. This handles all the incoming and outgoing IRC messages using the IRCLib Java library.
-     * 
+     *
      * @param args
      *            Whatever command line arguments are passed in. None are used even if they are supplied.
      */
@@ -31,8 +31,6 @@ public class Main {
         m_Conn.setPong(true);
         try {
             m_Conn.connect();
-            m_Conn.doJoin(Constants.CHANNEL);
-            m_Conn.doPrivmsg(Constants.CHANNEL, "Hi, I'm a fairly basic karma bot. Tell Haegin if you want me to be able to do more than just count karma");
 
             m_Conn.addIRCEventListener(new IRCEventListener() {
 
@@ -44,24 +42,16 @@ public class Main {
                 }
 
                 @Override public void onReply(int a_num, String a_value, String a_msg) {
-                    // System.out.println("REPLY: " + a_value + " =][= " + a_msg);
 
                     switch (a_num) {
-                        // If the reply is a list of names then we want to process them and add them to the list of karma names
-                        case IRCUtil.RPL_NAMREPLY:
-                            processNames(a_msg.split("[ \t]+"));
-                            break;
+                        // If the reply is part of a who request we need to record all the users if they don't already exist.
+                        case IRCUtil.RPL_WHOREPLY:
+                            System.out.println("REPLY: " + a_value + " =][= " + a_msg);
+                            String[] values = a_value.split(" "); // Split the value up into its constituent parts
+                            // a_value is in the form "<bot nick> <channel> <user> <host> <server> <nick> <H|G>[*][@|+] <hopcount> <realname>"
+                            processUser(values[2], values[3], values[4], values[5], values[6], a_msg);
 
-                        // If the reply is part of a whois then we want to create the user if necessary and update the relevant details
-                        case IRCUtil.RPL_WHOISUSER:
-                            processUser(a_value.replaceAll("\\*:~", "").split("[ \t]+"));
-                            break;
-
-                        case IRCUtil.RPL_WHOISCHANNELS:
-                            processWhoisChannels(a_value);
-                            break;
-
-                        // If we get anything else then we don't need to do anything
+                            // If we get anything else then we don't need to do anything
                         default:
                             break;
                     }
@@ -71,7 +61,7 @@ public class Main {
                 }
 
                 @Override public void onQuit(IRCUser a_user, String a_msg) {
-                    if (a_user.getNick().equals("prettygreat")) {
+                    if (a_user.getNick().equals("prettygreat") && a_msg.contains("egen...")) {
                         m_Conn.doPrivmsg("#cs-york", "...dary");
                     }
                 }
@@ -107,7 +97,6 @@ public class Main {
                                 // Shouldn't happen
                             }
                         }
-
                     }
                 }
 
@@ -165,14 +154,19 @@ public class Main {
                 }
             });
 
+            m_Conn.doJoin(Constants.CHANNEL);
+            m_Conn.doWho(Constants.CHANNEL);
+            m_Conn.doPrivmsg(Constants.CHANNEL, "Hi, I'm a fairly basic karma bot. Tell Haegin if you want me to be able to do more than just count karma");
+
         } catch (IOException ex) {
             m_Log.log(Level.WARNING, "Couldn't connect to server " + Constants.HOST);
         }
     }
 
+<<<<<<< HEAD
     /**
      * Processes the channel list section of a whois response. This records the user as a channel op if they are an op on Constants.CHANNEL
-     * 
+     *
      * @param a_value
      *            The whois channel response as from IRCLib
      */
@@ -191,12 +185,25 @@ public class Main {
 
     /**
      * Informs the channel of the given users karma. The message is set to the whole channel but will hilight the user that made the inquiry.
-     * 
+     *
      * @param a_msg
      *            the message the user sent that began with !karma
      * @param a_RespondTo
      *            the user who made the inquiry
      */
+=======
+    protected static void processUser(String user, String host, String server, String nick, String flags, String real) {
+        // Don't bother adding the new user if they already exist in the list.
+        if (!m_Users.contains(nick)) {
+            User newUser = new User(nick, user, real, host, server);
+            if (flags.contains("@")) {
+                newUser.setOperator(true);
+            }
+            m_Users.add(newUser);
+        }
+    }
+
+>>>>>>> ca12fcabb55c7a3141f6833c7f234dc5a7cb20d9
     protected static void showKarma(String a_msg, String a_RespondTo) {
         String karmacipient = a_msg.split("[ \t]")[1];
         if (m_Users.contains(karmacipient)) {
@@ -210,7 +217,7 @@ public class Main {
 
     /**
      * Adds a new nick to a user determined by their old nick. The new nick is set as the selected nick.
-     * 
+     *
      * @param a_OldNick
      *            the nick the user has switched from.
      * @param a_NewNick
@@ -234,9 +241,10 @@ public class Main {
         }
     }
 
+<<<<<<< HEAD
     /**
      * Processes the user information of a whois response to get the users nickname, username and host information.
-     * 
+     *
      * @param a_UserInfo
      *            the userinfo from the whois response as found in IRCLib
      */
@@ -265,7 +273,7 @@ public class Main {
 
     /**
      * Processes the response to a names request to send out whois requests to get user information.
-     * 
+     *
      * @param a_Names
      *            the nicknames from the name request
      */
@@ -282,10 +290,12 @@ public class Main {
 
     /**
      * Set a user to be marked as a channel operator. Note this doesn't change anything on the IRC side, just the internal user records.
-     * 
+     *
      * @param nick
      *            the user to be marked as operator.
      */
+=======
+>>>>>>> ca12fcabb55c7a3141f6833c7f234dc5a7cb20d9
     protected static void addOps(String nick) {
         if (m_Users.contains(nick)) {
             try {
@@ -299,7 +309,7 @@ public class Main {
 
     /**
      * Marks a user as not a channel operator. Note this doesn't change anything on the IRC side, just the internal user records.
-     * 
+     *
      * @param nick
      *            the user to be marked as not an operator.
      */
@@ -316,7 +326,7 @@ public class Main {
 
     /**
      * Increments a users karma score.
-     * 
+     *
      * @param a_Message
      *            The message a_FromNick sent that initiated the karma incrementation.
      * @param a_FromNick
@@ -337,7 +347,7 @@ public class Main {
 
     /**
      * Decrements a users karma score.
-     * 
+     *
      * @param a_Message
      *            The message a_FromNick sent that intiated the karma decrementation.
      * @param a_FromNick
@@ -358,7 +368,7 @@ public class Main {
 
     /**
      * Resets a users karma to zero.
-     * 
+     *
      * @param a_nick
      *            The user for whom karma should be reset to zero.
      */
@@ -373,6 +383,7 @@ public class Main {
         }
     }
 
+<<<<<<< HEAD
     // private static String karmacipient(String a_Message, String a_Suffix) {
     // Pattern patt = Pattern.compile("([a-zA-Z][a-zA-Z0-9[-\\[\\]`\\^\\{\\}]]*)[#:,\\.!\"$%&\\*\\(\\)\\?\\+/ \t]*" + Pattern.quote(a_Suffix));
     // System.out.println(patt.toString());
@@ -387,13 +398,15 @@ public class Main {
 
     /**
      * Used to parse a karma increment or decrement message to find the user who needs their karma altering.
-     * 
+     *
      * @param a_Message
      *            The message that was originally sent.
      * @param a_Suffix
      *            The suffix, either '++' or '--' depending on whether the karma should be incremented or decremented.
      * @return the nick of the user to act upon.
      */
+=======
+>>>>>>> ca12fcabb55c7a3141f6833c7f234dc5a7cb20d9
     private static String karmacipient(String a_Message, String a_Suffix) {
         String karmacipient = a_Message.substring(0, a_Message.lastIndexOf(a_Suffix)).trim();
         karmacipient = karmacipient.replaceAll("[#:,.!\"$%&*()?+/]", "");
